@@ -7,25 +7,23 @@ minimumCollateralRatio = 1.1
 vaults = {} -- { collateral: number, debt: number, collateralRatio: number }
 
 Handlers.add(
-    "updateCollateralPrice",
-    "UpdateCollateralPrice",
-    function(msg)
-        local tickers = { "wAR" } -- Replace with your desired tickers
-        local response = ao.send({
-            Target = "R5rRjBFS90qIGaohtzd1IoyPwZD0qJZ25QXkP7_p5a0",
-            Action = "v2.Request-Latest-Data",
-            Tags = {
-                Tickers = json.encode(tickers)
-            }
-        }).receive().Data
+  "CronTick", 
+  Handlers.utils.hasMatchingTag("Action", "Cron"),
+  function(msg)
+    local tickers = { "wAR" }
+    local response = ao.send({
+        Target = "R5rRjBFS90qIGaohtzd1IoyPwZD0qJZ25QXkP7_p5a0",
+        Action = "v2.Request-Latest-Data",
+        Tags = {
+            Tickers = json.encode(tickers)
+        }
+    }).receive().Data
 
-        local value = json.decode(response)
-        wArPrice = value.wAR.v
+    local value = json.decode(response)
+    wArPrice = value.wAR.v
 
-        msg.reply({
-            Data = json.encode(wArPrice)
-        })
-    end
+    print(wArPrice)
+end
 )
 
 Handlers.add("depositCollateral", "Credit-Notice", function(msg)
