@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stabilis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-800 font-sans">
+    <div class="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-lg mt-10">
+      <h1 class="text-2xl font-bold text-center mb-6">Stabilis</h1>
+
+      <!-- Wallet Connection -->
+      <div class="mb-6 p-4 border border-gray-300 rounded">
+        <h2 class="text-xl font-semibold mb-2">Wallet</h2>
+        <div class="flex justify-between items-center">
+          <span id="walletAddress" class="text-gray-600 truncate max-w-xs">Wallet not connected</span>
+          <button id="connectWalletBtn" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+            Connect Wallet
+          </button>
+        </div>
+      </div>
+
+      <!-- Vault Section -->
+      <div class="mb-6 p-4 border border-gray-300 rounded">
+        <h2 class="text-xl font-semibold mb-2">Your Vault</h2>
+        <div id="vaultState" class="text-gray-700 mb-4">
+          <p>Collateral: <span id="vaultCollateral">0</span> AO</p>
+          <p>Debt: <span id="vaultDebt">0</span> USDao</p>
+          <p>Collateral Ratio: <span id="vaultRatio">N/A</span></p>
+          <p>Status: <span id="vaultStatus"></span></p>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <!-- Deposit Collateral -->
+          <div>
+            <label for="depositCollateralAmount" class="block text-sm font-medium text-gray-700">Deposit AO Collateral</label>
+            <div class="mt-1 flex rounded-md shadow-sm">
+              <input type="number" id="depositCollateralAmount" class="flex-1 block w-full rounded-none rounded-l-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2" placeholder="Amount" />
+              <button id="depositCollateralBtn" class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                Deposit
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Note: You will need to send the AO tokens separately after clicking Deposit.</p>
+          </div>
+
+          <!-- Withdraw Collateral -->
+          <div>
+            <label for="withdrawCollateralAmount" class="block text-sm font-medium text-gray-700">Withdraw AO Collateral</label>
+            <div class="mt-1 flex rounded-md shadow-sm">
+              <input type="number" id="withdrawCollateralAmount" class="flex-1 block w-full rounded-none rounded-l-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2" placeholder="Amount" />
+              <button id="withdrawCollateralBtn" class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                Withdraw
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Note: You can only withdraw if your vault remains above the minimum collateral ratio.</p>
+          </div>
+
+          <!-- Mint Stablecoin -->
+          <div>
+            <label for="mintStablecoinAmount" class="block text-sm font-medium text-gray-700">Mint USDao</label>
+            <div class="mt-1 flex rounded-md shadow-sm">
+              <input type="number" id="mintStablecoinAmount" class="flex-1 block w-full rounded-none rounded-l-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2" placeholder="Amount" />
+              <button id="mintStablecoinBtn" class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                Mint
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stability Pool Section -->
+      <div class="mb-6 p-4 border border-gray-300 rounded">
+        <h2 class="text-xl font-semibold mb-2">Stability Pool</h2>
+        <div id="stabilityPoolState" class="text-gray-700 mb-4">
+          <p>Your Deposit: <span id="poolUserDeposit">0</span> USDao</p>
+          <p>Your Collateral Gain: <span id="poolUserCollateralGain">0</span> AO</p>
+          <p>Your USDao Gain/Loss: <span id="poolUserStablecoinGain">0</span> USDao</p>
+          <p>Total Pool Deposit: <span id="poolTotalDeposit">0</span> USDao</p>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <!-- Deposit Stability Pool -->
+          <div>
+            <label for="depositPoolAmount" class="block text-sm font-medium text-gray-700">Deposit USDao to Pool</label>
+            <div class="mt-1 flex rounded-md shadow-sm">
+              <input type="number" id="depositPoolAmount" class="flex-1 block w-full rounded-none rounded-l-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2" placeholder="Amount" />
+              <button id="depositPoolBtn" class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                Deposit
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Note: You will need to send the USDao tokens separately after clicking Deposit.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Global Info Section -->
+      <div class="mb-6 p-4 border border-gray-300 rounded">
+        <h2 class="text-xl font-semibold mb-2">Protocol Info</h2>
+        <div id="protocolInfoState" class="text-gray-700">
+          <p>TVL: <span id="totalCollateral">0</span> AO</p>
+          <p>Total USDao Supply: <span id="totalSupply">0</span> USDao</p>
+          <p>Minimum Collateral Ratio: <span id="minRatio">110</span>%</p>
+        </div>
+      </div>
+
+      <!-- Message Display -->
+      <div id="message" class="mt-4 p-4 bg-gray-100 border border-gray-300 rounded text-center font-medium hidden"></div>
+    </div>
+
+    <script type="module">
+      // Import required functions from aoconnect
+      import { message, result, dryrun, createDataItemSigner } from 'https://unpkg.com/@permaweb/aoconnect/dist/browser.js';
+
+      // Constants
+      const processId = '<process_id>'; // Replace with your Stalecoin Protocol process ID
+      const collateralTokenId = '<AO_TOKEN_ID>'; // Replace with the actual Process ID of the AO token used as collateral
+
+      // State variables
+      let signer = null;
+      let walletAddress = null;
+      let walletConnected = false;
+
+      // DOM Elements
+      const walletAddressEl = document.getElementById('walletAddress');
+      const connectWalletBtn = document.getElementById('connectWalletBtn');
+      const messageEl = document.getElementById('message');
+
+      const vaultCollateralEl = document.getElementById('vaultCollateral');
+      const vaultDebtEl = document.getElementById('vaultDebt');
+      const vaultRatioEl = document.getElementById('vaultRatio');
+      const vaultStatusEl = document.getElementById('vaultStatus');
+
+      const depositCollateralAmountEl = document.getElementById('depositCollateralAmount');
+      const depositCollateralBtn = document.getElementById('depositCollateralBtn');
+      const mintStablecoinAmountEl = document.getElementById('mintStablecoinAmount');
+      const mintStablecoinBtn = document.getElementById('mintStablecoinBtn');
+      const withdrawCollateralAmountEl = document.getElementById('withdrawCollateralAmount');
+      const withdrawCollateralBtn = document.getElementById('withdrawCollateralBtn');
+
+      const poolUserDepositEl = document.getElementById('poolUserDeposit');
+      const poolUserCollateralGainEl = document.getElementById('poolUserCollateralGain');
+      const poolUserStablecoinGainEl = document.getElementById('poolUserStablecoinGain');
+      const poolTotalDepositEl = document.getElementById('poolTotalDeposit');
+      const depositPoolAmountEl = document.getElementById('depositPoolAmount');
+      const depositPoolBtn = document.getElementById('depositPoolBtn');
+
+      const totalSupplyEl = document.getElementById('totalSupply');
+      const minRatioEl = document.getElementById('minRatio');
+      const totalCollateralEl = document.getElementById('totalCollateral');
+
+      /**
+       * Check if wallet extension is available
+       */
+      function checkWalletExtension() {
+        if (typeof window.arweaveWallet === 'undefined') {
+          showMessage('Arweave wallet extension not detected. Please install ArConnect/Wander.', true);
+          return false;
+        }
+        return true;
+      }
+
+      /**
+       * Connect to the user's wallet
+       */
+      async function connectWallet() {
+        // Disable button during connection attempt
+        connectWalletBtn.disabled = true;
+        connectWalletBtn.textContent = 'Connecting...';
+        
+        try {
+          // Check if wallet extension exists
+          if (!checkWalletExtension()) {
+            connectWalletBtn.disabled = false;
+            connectWalletBtn.textContent = 'Connect Wallet';
+            return;
+          }
+
+          // Request connection permissions
+          await window.arweaveWallet.connect([
+            'ACCESS_ADDRESS', 
+            'SIGN_TRANSACTION', 
+            'ACCESS_PUBLIC_KEY', 
+            'SIGNATURE'
+          ]);
+          
+          // Get the connected wallet address
+          walletAddress = await window.arweaveWallet.getActiveAddress();
+          
+          // Create a signer for AO messages
+          signer = createDataItemSigner(window.arweaveWallet);
+          
+          // Update UI to show connected state
+          walletConnected = true;
+          updateWalletUI();
+          
+          // Fetch initial state data
+          await fetchAndDisplayState();
+          
+          showMessage('Wallet connected successfully!');
+        } catch (error) {
+          console.error('Wallet connection error:', error);
+          
+          // Handle specific error cases
+          if (error.message && error.message.includes('denied')) {
+            showMessage('Connection request was denied by user.', true);
+          } else {
+            showMessage(`Failed to connect wallet: ${error.message || 'Unknown error'}`, true);
+          }
+          
+          // Reset connection state
+          walletConnected = false;
+          walletAddress = null;
+          signer = null;
+        } finally {
+          // Re-enable button with appropriate text
+          connectWalletBtn.disabled = false;
+          connectWalletBtn.textContent = walletConnected ? 'Wallet Connected' : 'Connect Wallet';
+        }
+      }
+
+      /**
+       * Update the wallet UI based on connection status
+       */
+      function updateWalletUI() {
+        if (walletConnected && walletAddress) {
+          // Format address for display (first 6 + last 4 chars)
+          const shortAddress = `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}`;
+          walletAddressEl.textContent = shortAddress;
+          walletAddressEl.title = walletAddress; // Full address on hover
+          
+          connectWalletBtn.textContent = 'Wallet Connected';
+          connectWalletBtn.disabled = true;
+          connectWalletBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+          connectWalletBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+        } else {
+          walletAddressEl.textContent = 'Wallet not connected';
+          walletAddressEl.title = '';
+          
+          connectWalletBtn.textContent = 'Connect Wallet';
+          connectWalletBtn.disabled = false;
+          connectWalletBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+          connectWalletBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+        }
+      }
+
+      /**
+       * Display a message to the user
+       */
+      function showMessage(text, isError = false) {
+        messageEl.textContent = text;
+        messageEl.className = `mt-4 p-4 border rounded text-center font-medium ${
+          isError ? 'bg-red-100 border-red-300 text-red-800' : 'bg-green-100 border-green-300 text-green-800'
+        }`;
+        messageEl.classList.remove('hidden');
+        
+        // Auto-hide message after 5 seconds
+        setTimeout(() => {
+          messageEl.classList.add('hidden');
+        }, 5000);
+      }
+
+      /**
+       * Convert an object into an array of tags
+       */
+      function objectToTags(obj) {
+        return Object.entries(obj).map(([key, value]) => ({ 
+          name: key, 
+          value: String(value) 
+        }));
+      }
+
+      /**
+       * Send a message to the AO process
+       */
+      async function sendMessage(action, tags = {}) {
+        if (!walletConnected || !signer) {
+          showMessage('Please connect your wallet first.', true);
+          return null;
+        }
+        
+        showMessage(`Sending ${action} request...`);
+        
+        try {
+          const res = await message({
+            process: processId,
+            signer,
+            tags: [{ name: 'Action', value: action }, ...objectToTags(tags)],
+          });
+          
+          const { Messages } = await result({ process: processId, message: res });
+          
+          if (Messages && Messages.length > 0) {
+            try {
+              // Try to parse as JSON if possible
+              if (Messages[0].Data) {
+                return JSON.parse(Messages[0].Data);
+              }
+            } catch (e) {
+              // If not JSON, return the raw message
+              return Messages[0];
+            }
+          }
+          return null;
+        } catch (error) {
+          console.error('Error sending message:', error);
+          showMessage(`Error: ${error.message || 'Failed to send message'}`, true);
+          return null;
+        } finally {
+          // Refresh state data
+          await fetchAndDisplayState();
+        }
+      }
+
+      /**
+       * Perform a dry-run to simulate an AO message
+       */
+      async function dryrunMessage(action, tags = {}) {
+        if (!walletAddress) {
+          return null;
+        }
+        
+        try {
+          const res = await dryrun({
+            process: processId,
+            Owner: walletAddress,
+            tags: [{ name: 'Action', value: action }, ...objectToTags(tags)],
+          });
+          
+          if (res.Messages && res.Messages.length > 0) {
+            try {
+              if (res.Messages[0].Data) {
+                return JSON.parse(res.Messages[0].Data);
+              }
+            } catch (e) {
+              return res.Messages[0];
+            }
+          }
+          return null;
+        } catch (error) {
+          console.error('Error in dry run:', error);
+          return null;
+        }
+      }
+
+      /**
+       * Fetch and display the current state
+       */
+      async function fetchAndDisplayState() {
+        if (!walletConnected || !walletAddress) {
+          return;
+        }
+        
+        try {
+          // Fetch vault state
+          const vaultState = await dryrunMessage('GetVaultState', { Target: walletAddress });
+          if (vaultState) {
+            vaultCollateralEl.textContent = vaultState.collateral.toFixed(6);
+            vaultDebtEl.textContent = vaultState.debt.toFixed(6);
+            
+            if (vaultState.ratio === Infinity) {
+              vaultRatioEl.textContent = '∞';
+            } else if (vaultState.ratio !== null && vaultState.ratio !== undefined) {
+              vaultRatioEl.textContent = (vaultState.ratio * 100).toFixed(2) + '%';
+            } else {
+              vaultRatioEl.textContent = 'N/A';
+            }
+
+            if (vaultState.isUndercollateralized) {
+              vaultStatusEl.textContent = 'Undercollateralized';
+              vaultStatusEl.className = 'text-red-600 font-semibold';
+            } else {
+              vaultStatusEl.textContent = 'Healthy';
+              vaultStatusEl.className = 'text-green-600 font-semibold';
+            }
+          } else {
+            vaultCollateralEl.textContent = '0';
+            vaultDebtEl.textContent = '0';
+            vaultRatioEl.textContent = 'N/A';
+            vaultStatusEl.textContent = '';
+          }
+
+          // Fetch stability pool state
+          const poolState = await dryrunMessage('GetStabilityPoolState', { Target: walletAddress });
+          if (poolState) {
+            poolUserDepositEl.textContent = poolState.userDeposit.toFixed(6);
+            poolUserCollateralGainEl.textContent = poolState.userCollateralGain.toFixed(6);
+            poolUserStablecoinGainEl.textContent = poolState.userStablecoinGain.toFixed(6);
+            poolTotalDepositEl.textContent = poolState.totalPoolDeposit.toFixed(6);
+          } else {
+            poolUserDepositEl.textContent = '0';
+            poolUserCollateralGainEl.textContent = '0';
+            poolUserStablecoinGainEl.textContent = '0';
+            poolTotalDepositEl.textContent = '0';
+          }
+
+          // Fetch global protocol info
+          const totalSupplyState = await dryrunMessage('GetTotalSupply');
+          if (totalSupplyState) {
+            totalSupplyEl.textContent = totalSupplyState.totalSupply.toFixed(6);
+          }
+
+          const totalCollateralState = await dryrunMessage('GetTotalCollateral');
+          if (totalCollateralState) {
+            totalCollateralEl.textContent = totalCollateralState.totalCollateral.toFixed(6);
+          }
+
+          const infoState = await dryrunMessage('Info');
+          if (infoState && infoState.Tags) {
+            minRatioEl.textContent = (parseFloat(infoState.Tags.MinimumCollateralRatio) * 100).toFixed(0) + '%';
+          }
+        } catch (error) {
+          console.error('Error fetching state:', error);
+        }
+      }
+
+      /**
+       * Initialize the application
+       */
+      async function initializeApp() {
+        // Check if wallet is already connected
+        if (checkWalletExtension()) {
+          try {
+            const address = await window.arweaveWallet.getActiveAddress().catch(() => null);
+            if (address) {
+              walletAddress = address;
+              signer = createDataItemSigner(window.arweaveWallet);
+              walletConnected = true;
+              updateWalletUI();
+              await fetchAndDisplayState();
+            } else {
+              updateWalletUI();
+            }
+          } catch (error) {
+            console.error('Error checking wallet connection:', error);
+            updateWalletUI();
+          }
+        } else {
+          updateWalletUI();
+        }
+      }
+
+      // Event Listeners
+      connectWalletBtn.addEventListener('click', connectWallet);
+
+      depositCollateralBtn.addEventListener('click', async () => {
+        const amount = depositCollateralAmountEl.value;
+        if (!amount || parseFloat(amount) <= 0) {
+          showMessage('Please enter a valid amount to deposit.', true);
+          return;
+        }
+        const response = await sendMessage('DepositCollateral');
+        if (response && response.Message) {
+          showMessage(response.Message);
+        } else if (response && response.Tags && response.Tags.Message) {
+          showMessage(response.Tags.Message);
+        } else {
+          showMessage('Deposit collateral message sent. Please send AO tokens to the protocol process.');
+        }
+      });
+
+      withdrawCollateralBtn.addEventListener('click', async () => {
+        const amount = withdrawCollateralAmountEl.value;
+        if (!amount || parseFloat(amount) <= 0) {
+          showMessage('Please enter a valid amount to withdraw.', true);
+          return;
+        }
+        const response = await sendMessage('WithdrawCollateral', { Quantity: amount });
+        if (response && response.Tags) {
+          if (response.Tags.Action === 'CollateralWithdrawn') {
+            showMessage(`Successfully withdrew ${response.Tags.Quantity} AO. New balance: ${response.Tags.NewBalance} AO`);
+            withdrawCollateralAmountEl.value = '';
+          } else if (response.Tags.Action === 'WithdrawFailed') {
+            showMessage(response.Tags.Message || 'Withdrawal failed', true);
+          }
+        } else {
+          showMessage('Error processing withdrawal.', true);
+        }
+      });
+
+      mintStablecoinBtn.addEventListener('click', async () => {
+        const amount = mintStablecoinAmountEl.value;
+        if (!amount || parseFloat(amount) <= 0) {
+          showMessage('Please enter a valid amount to mint.', true);
+          return;
+        }
+        const response = await sendMessage('MintStablecoin', { Quantity: amount });
+        if (response && response.Message) {
+          showMessage(response.Message);
+        } else if (response && response.Tags && response.Tags.Message) {
+          showMessage(response.Tags.Message);
+        } else if (response && response.Tags && response.Tags.Action === 'StablecoinMinted') {
+          showMessage(`Successfully minted ${response.Tags.Quantity} USDao.`);
+        } else {
+          showMessage('Error minting stablecoin.', true);
+        }
+      });
+
+      depositPoolBtn.addEventListener('click', async () => {
+        const amount = depositPoolAmountEl.value;
+        if (!amount || parseFloat(amount) <= 0) {
+          showMessage('Please enter a valid amount to deposit.', true);
+          return;
+        }
+        const response = await sendMessage('DepositStabilityPool');
+        if (response && response.Message) {
+          showMessage(response.Message);
+        } else if (response && response.Tags && response.Tags.Message) {
+          showMessage(response.Tags.Message);
+        } else {
+          showMessage('Deposit to Stability Pool message sent. Please send USDao tokens to the protocol process.');
+        }
+      });
+
+      // Initialize the app when the page loads
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+  </body>
+</html>
