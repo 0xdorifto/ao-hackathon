@@ -1,7 +1,7 @@
 local json = require("json")
 
 collateralTokenId = "-QOtT3QjypIA8pNoi2Gq958kV8wpedzuektLxQZr_3o"
-stablecoinTokenId = "n2rIeHCoaPvFXBsYHmkhBMl5fJF0w99noHz9O17Lnns"
+stablecoinTokenId = "nb6dgXRC0QzpWlxjSZ-YyMS0KVcPtFoow8GTDzDNqR4"
 wArPrice = 0
 minimumCollateralRatio = 1.1
 vaults = {} -- { collateral: number, debt: number, collateralRatio: number }
@@ -91,17 +91,13 @@ Handlers.add("withdrawCollateral", "WithdrawCollateral", function(msg)
         return
     end
 
-    print("amount is allowed")
-
-    local collateralRatio = (vaults[msg.From].collateral * wArPrice) / (vaults[msg.From].debt + amount)
+    local collateralRatio = ((vaults[msg.From].collateral - amount) * wArPrice) / (vaults[msg.From].debt)
     if collateralRatio < minimumCollateralRatio then
       msg.reply({
           Error = "Collateral would be below minimum"
       })
       return
     end
-
-    print("collateral is allowed")
 
     local transferResponse = ao.send({
         Target = collateralTokenId,
@@ -136,4 +132,64 @@ Handlers.add("withdrawCollateral", "WithdrawCollateral", function(msg)
             vault = vaults[msg.From]
         }
     })
+end)
+
+Handlers.add("mintStablecoin", "MintStablecoin", function(msg)
+  if not msg.Quantity then
+    msg.reply({
+        Error = "Invalid input. Required: Quantity"
+    })
+    return
+  end
+
+  local user = msg.From
+
+  if not vaults[user] then
+      msg.reply({
+          Error = "User has no vault"
+      })
+      return
+  end
+
+  local amount = tonumber(msg.Quantity)
+  local collateral = vaults[user].collateral
+  if not amount or amount <= 0 then
+      msg.reply({
+          Error = "Amount must be a positive number"
+      })
+      return
+  end
+
+  local collateralRatio = (vaults[msg.From].collateral * wArPrice) / (vaults[msg.From].debt + amount)
+  if collateralRatio < minimumCollateralRatio then
+    msg.reply({
+        Error = "Collateral would be below minimum"
+    })
+    return
+  end
+
+  local mintResponse = ao.send({
+    Target = stablecoinTokenId,
+    Action = "Mint",
+    From = ao.id,
+    Recipient = msg.From,
+    Quantity = tostring(amount)
+  }).receive()
+
+  if not mintResponse or mintResponse.Error then
+    msg.reply({
+        Error = "Failed to mint stablecoin: " .. (mintResponse and mintResponse.Error or "Unknown error")
+    })
+    return
+  end
+
+  vaults[msg.From].debt = vaults[msg.From].debt + amount
+  vaults[msg.From].collateralRatio = collateralRatio
+
+  msg.reply({
+    Data = {
+        message = "Stablecoin minted successfully",
+        vault = vaults[msg.From]
+    }
+  })
 end)

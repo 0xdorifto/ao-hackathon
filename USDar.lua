@@ -41,7 +41,15 @@ local utils = {
   end,
   toNumber = function(a)
     return bint.tonumber(a)
-  end
+  end,
+  contains = function(array, element)
+    for _, value in ipairs(array) do
+        if value == element then
+            return true
+        end
+    end
+    return false
+end
 }
 
 
@@ -59,6 +67,8 @@ TotalSupply = utils.toBalanceValue(0)
 Name = 'Arweave Dollar'
 Ticker = 'USDar'
 Logo = 'aKJMBaYpGAUrsR3N7WDyjyUz7zW6vsWTnYE1zpQSn1Y'
+
+Minters = {ao.id}
 
 --[[
      Add handlers for each incoming Action defined by the ao Standard Token Specification
@@ -187,7 +197,7 @@ Handlers.add('mint', "Mint", function(msg)
   
   if not Balances[recipient] then Balances[recipient] = "0" end
 
-  if msg.From == ao.id then
+  if utils.contains(Minters, msg.From) then
     -- Add tokens to the recipient's balance, according to Quantity
     Balances[recipient] = utils.add(Balances[recipient], msg.Quantity)
     TotalSupply = utils.add(TotalSupply, msg.Quantity)
@@ -198,7 +208,7 @@ Handlers.add('mint', "Mint", function(msg)
     msg.reply({
       Action = 'Mint-Error',
       ['Message-Id'] = msg.Id,
-      Error = 'Only the Process Id can mint new ' .. Ticker .. ' tokens!'
+      Error = 'Only the Minters can mint new ' .. Ticker .. ' tokens!'
     })
   end
 end)
@@ -229,5 +239,19 @@ Handlers.add('burn', 'Burn', function(msg)
 
   msg.reply({
     Data = Colors.gray .. "Successfully burned " .. Colors.blue .. msg.Quantity .. Colors.reset
+  })
+end)
+
+--[[
+ AddMinters
+]] --
+Handlers.add('addMinter', 'AddMinter', function(msg)
+  assert(msg.From == ao.id, 'Only the Process Owner can add new minters!')
+  assert(type(msg.Minter) == 'string', 'Minter must be provided as a string!')
+
+  table.insert(Minters, msg.Minter)
+
+  msg.reply({
+    Data = Minters
   })
 end)
