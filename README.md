@@ -12,4 +12,5 @@ oracle: R5rRjBFS90qIGaohtzd1IoyPwZD0qJZ25QXkP7_p5a0 - mainnet-oracle
 ```
 
 wAR: -QOtT3QjypIA8pNoi2Gq958kV8wpedzuektLxQZr_3o
+
 USDar: n2rIeHCoaPvFXBsYHmkhBMl5fJF0w99noHz9O17Lnns
