@@ -574,7 +574,7 @@
           showMessage('Please enter a valid amount to deposit.', true);
           return;
         }
-        const response = await sendMessage(processId, 'DepositStablecoin', { Quantity: amount }, {Tags});
+        const response = await sendMessage(stablecoinTokenId, 'Transfer', { Quantity: amount, Recipient: processId, "X-DepositStablecoin": "True" });
         if (response && response.message) {
           showMessage(response.message);
         } else {

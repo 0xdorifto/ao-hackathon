@@ -5,7 +5,7 @@ stablecoinTokenId = "FYGz2V2RW-4hRI4EozeUMBzHH47JqOLXGz5CtBwwLu0"
 wArPrice = wArPrice or 0
 minimumCollateralRatio = 1.1
 vaults = vaults or {} -- { collateral: number, debt: number, collateralRatio: number }
-stabilityPool = stabilityPool or {}
+stabilityPool = stabilityPool or {} -- { deposit: number}
 totalCollateral = totalCollateral or 0
 totalDebt = totalDebt or 0
 totalStabilityPool = totalStabilityPool or 0
@@ -232,35 +232,30 @@ Handlers.add("repayStablecoin", "Burn-Notice", function(msg)
 
   Handlers.add("depositStablecoin", "Credit-Notice", function(msg)
     if msg["X-DepositStablecoin"] == "True" then
-        print("Detected DepositStablecoin")
         -- Initialize or update vault
-        if not stabilityPool[msg.From] then
-            stabilityPool[msg.From] = 0
+        if not stabilityPool[msg.Sender] then
+            vaults[msg.Sender] = {
+                deposit = 0,
+            }
         end
-
-        print(stabilityPool)
-
+    
         local amount = tonumber(msg.Quantity)
-
-        stabilityPool[msg.From] = stabilityPool[msg.From] + amount
+        stabilityPool[msg.Sender] = stabilityPool[msg.Sender] + amount
 
         totalStabilityPool = totalStabilityPool + amount
 
-        print(stabilityPool)
-
-        -- Send confirmation
         msg.reply({
             Data = {
                 message = "Stablecoin deposited successfully",
-                stabilityPool = stabilityPool[msg.From]
+                stabilityPool = stabilityPool[msg.Sender]
             }
         })
     else
         ao.send({
-            Target = msg.From,
+            Target = msg.Sender,
             Action = "Transfer",
             Quantity = msg.Quantity,
-            Recipient = msg.From
+            Recipient = msg.Sender
         })
     end
   end)
