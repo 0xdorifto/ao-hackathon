@@ -1,16 +1,25 @@
 # Stabilis
 
-## Process IDs
+Stabilis is a decentralized protocol that allows AR holders to obtain maximum liquidity against their collateral without paying interest. After locking up AR as collateral in a process (smart contract) and creating an individual position called a "vault", the user can get instant liquidity by minting USDar, a USD-pegged stablecoin. Each vault is required to be collateralized at a minimum of 110%. Any owner of USDar can redeem their stablecoins for the underlying collateral at any time. The redemption mechanism along with algorithmically adjusted fees guarantee a minimum stablecoin value of USD 1.
 
-```bash
-process: WVptVreZAh8FAng2UwIfnaBPkD9TFVkUysJds9elOO8
-first test: 7RNnoihSI4s3FF4vcGhZ6RRF-bwvhtSSPLqX05L-JOs - aos stabilis
+An unprecedented liquidation mechanism based on incentivized stability deposits and a redistribution cycle from riskier to safer vaults provides stability at a much lower collateral ratio than current systems. Stability is maintained via economically-driven user interactions and arbitrage, rather than by active governance or monetary interventions.
 
-collateral: 3u52R0MlntHPBKA_Su5qptUtS-3dxtc_dfvGAiLU6PA - aos ethereum1
-protocol: GvZNzJ-tcJkUeo6x1mBN6KAHfd1-mq2EAfIupu95BrA - aos test1
-oracle: R5rRjBFS90qIGaohtzd1IoyPwZD0qJZ25QXkP7_p5a0 - mainnet-oracle
-```
+The protocol has built-in incentives that encourage both early adoption and the operation of multiple front ends, enhancing decentralization.
 
-wAR: -QOtT3QjypIA8pNoi2Gq958kV8wpedzuektLxQZr_3o
+## Overview
 
-USDar: n2rIeHCoaPvFXBsYHmkhBMl5fJF0w99noHz9O17Lnns
+Stabilis is a collateralized debt platform. Users can lock up Arweave, and issue stablecoin tokens (USDar) to their own Arweave address, and subsequently transfer those tokens to any other Arweave address. The individual collateralized debt positions are called Vaults.
+
+The stablecoin tokens are economically geared towards maintaining value of 1 USDar = $1 USD, due to the following properties:
+
+1. The system is designed to always be over-collateralized - the dollar value of the locked Arweave exceeds the dollar value of the issued stablecoins
+
+2. The stablecoins are fully redeemable - users can always swap $x worth of USDar for $x worth of AR (minus fees), directly with the system.
+
+3. The system algorithmically controls the generation of USDar through a variable issuance fee.
+
+After opening a Vault with some Arweave, users may issue ("borrow") tokens such that the collateralization ratio of their Vault remains above 110%. A user with $1000 worth of AR in a Vault can issue up to 909.09 USDar.
+
+The tokens are freely exchangeable - anyone with an Arweave address can send or receive USDar tokens, whether they have an open Vault or not. The tokens are burned upon repayment of a Vault's debt.
+
+The Stabilis system regularly updates the AR:USD price via http outcalls to CMC and CG. When a Vault falls below a minimum collateralization ratio (MCR) of 110%, it is considered under-collateralized, and is automatically liquidated.
