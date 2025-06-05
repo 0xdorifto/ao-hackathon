@@ -132,7 +132,19 @@
       <div class="mb-6 p-4 border border-gray-300 rounded">
         <h2 class="text-xl font-semibold mb-2">Vaults</h2>
         <div id="vaultsList" class="text-gray-700">
-          <pre class="whitespace-pre-wrap break-words"></pre>
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deposit</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debt</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Collateral Ratio</th>
+              </tr>
+            </thead>
+            <tbody id="vaultsTableBody" class="bg-white divide-y divide-gray-200">
+              <!-- Table rows will be populated dynamically -->
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -304,7 +316,7 @@
         }
         
         showMessage(`Sending ${action} request...`);
-        
+
         try {
           const res = await message({
             process: processId,
@@ -375,16 +387,39 @@
         try {
           // Fetch all vaults
           const vaultsState = await dryrunMessage('GetVaults');
-          if (vaultsState) {
-            vaultsListEl.textContent = JSON.stringify(vaultsState.Data.vaults, null, 2);
+          console.log(vaultsState)
+          
+          if (vaultsState && vaultsState.vaults) {
+            const tableBody = document.getElementById('vaultsTableBody');
+            tableBody.innerHTML = ''; // Clear existing rows
+            
+            Object.entries(vaultsState.vaults).forEach(([address, vault]) => {
+              const row = document.createElement('tr');
+              
+              // Format address
+              const shortAddress = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+              
+              // Format collateral ratio
+              const ratio = vault.collateralRatio === 999 ? '∞' : 
+                           (vault.collateralRatio * 100).toFixed(2) + '%';
+              
+              row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${shortAddress}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${vault.collateral}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${vault.debt}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${ratio}</td>
+              `;
+              
+              tableBody.appendChild(row);
+            });
           }
 
           // Fetch user vault state
           const vaultState = await dryrunMessage('GetUserVault');
           if (vaultState && vaultState.vault) {
             const vault = vaultState.vault;
-            vaultCollateralEl.textContent = vault.collateral.toFixed(6);
-            vaultDebtEl.textContent = vault.debt.toFixed(6);
+            vaultCollateralEl.textContent = vault.collateral;
+            vaultDebtEl.textContent = vault.debt;
             
             if (vault.collateralRatio === 999) {
               vaultRatioEl.textContent = '∞';
@@ -409,7 +444,7 @@
           // Fetch stability pool state
           const poolState = await dryrunMessage('GetUserStabilityPool');
           if (poolState) {
-            poolUserDepositEl.textContent = poolState.stablecoin.toFixed(6);
+            poolUserDepositEl.textContent = poolState.stablecoin;
           }
 
           // Fetch global protocol info
@@ -482,7 +517,8 @@
           showMessage('Please enter a valid amount to deposit.', true);
           return;
         }
-        const response = await sendMessage(collateralTokenId, 'Transfer', { Quantity: amount, Recipient: processId, Tags: "[\"X-DepositCollateral\"] = \"True\"" });
+
+        const response = await sendMessage(collateralTokenId, 'Transfer', { Quantity: amount, Recipient: processId, "X-DepositCollateral": "True" });
         if (response && response.message) {
           showMessage(response.message);
         } else {
@@ -499,8 +535,8 @@
         const response = await sendMessage(processId, 'WithdrawCollateral', { Quantity: amount });
         if (response && response.message) {
           showMessage(response.message);
-        } else if (response && response.Error) {
-          showMessage(response.Error, true);
+        } else {
+          showMessage("Witdhraw collateral sent.");
         }
       });
 
@@ -513,8 +549,8 @@
         const response = await sendMessage(processId, 'MintStablecoin', { Quantity: amount });
         if (response && response.message) {
           showMessage(response.message);
-        } else if (response && response.Error) {
-          showMessage(response.Error, true);
+        } else {
+          showMessage("MintStablecoin sent.");
         }
       });
 

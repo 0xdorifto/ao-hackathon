@@ -337,7 +337,9 @@ end)
 
 Handlers.add("getVaults", "GetVaults", function(msg)
     msg.reply({
-        vaults = vaults
+        Data = {
+            vaults = vaults
+        }
     })
 end)
 
