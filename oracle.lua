@@ -14,6 +14,7 @@ Handlers.add(
   "CronTick", 
   Handlers.utils.hasMatchingTag("Action", "Cron"),
   function()
+    -- update collateral price
     local tickers = { "wAR" }
     local response = ao.send({
         Target = "R5rRjBFS90qIGaohtzd1IoyPwZD0qJZ25QXkP7_p5a0",
@@ -27,6 +28,34 @@ Handlers.add(
     wArPrice = value.wAR.v
 
     print(wArPrice)
+    -- check for liquidations
+    local foundLiquidation = false
+    
+    -- Update all vault collateral ratios with new price
+    for address, vault in pairs(vaults) do
+        if vault.debt == 0 then
+            vault.collateralRatio = 999
+        else
+            vault.collateralRatio = (vault.collateral * wArPrice) / vault.debt
+        end
+    end
+
+    -- Check for undercollateralized vaults
+    for address, vault in pairs(vaults) do
+        if vault.collateralRatio < 1.1 then
+            foundLiquidation = true
+            print("Proceed with Liquidation:")
+            print("Address: " .. address)
+            print("Collateral: " .. vault.collateral)
+            print("Debt: " .. vault.debt)
+            print("Collateral Ratio: " .. vault.collateralRatio)
+            print("-------------------")
+        end
+    end
+    
+    if not foundLiquidation then
+        print("No Liquidations, all vaults are healthy")
+    end
 end
 )
 
