@@ -2,14 +2,14 @@ local json = require("json")
 
 collateralTokenId = "-QOtT3QjypIA8pNoi2Gq958kV8wpedzuektLxQZr_3o"
 stablecoinTokenId = "nb6dgXRC0QzpWlxjSZ-YyMS0KVcPtFoow8GTDzDNqR4"
-wArPrice = 0
+wArPrice = wArPrice or 0
 minimumCollateralRatio = 1.1
-vaults = {} -- { collateral: number, debt: number, collateralRatio: number }
+vaults = vaults or {} -- { collateral: number, debt: number, collateralRatio: number }
 
 Handlers.add(
   "CronTick", 
   Handlers.utils.hasMatchingTag("Action", "Cron"),
-  function(msg)
+  function()
     local tickers = { "wAR" }
     local response = ao.send({
         Target = "R5rRjBFS90qIGaohtzd1IoyPwZD0qJZ25QXkP7_p5a0",
@@ -27,42 +27,66 @@ end
 )
 
 Handlers.add("depositCollateral", "Credit-Notice", function(msg)
-    if msg["X-DepositCollateral"] == "True" then
-        -- Initialize or update vault
-        if not vaults[msg.Sender] then
-            vaults[msg.Sender] = {
-                collateral = 0,
-                debt = 0,
-                collateralRatio = 0
-            }
-        end
+  if msg["X-DepositCollateral"] == "True" then
+      -- Initialize or update vault
+      if not vaults[msg.Sender] then
+          vaults[msg.Sender] = {
+              collateral = 0,
+              debt = 0,
+              collateralRatio = 0
+          }
+      end
 
-        local amount = tonumber(msg.Quantity)
+      local amount = tonumber(msg.Quantity)
 
-        -- Update vault state
-        vaults[msg.Sender].collateral = vaults[msg.Sender].collateral + amount
+      -- Update vault state
+      vaults[msg.Sender].collateral = vaults[msg.Sender].collateral + amount
 
-        if not vaults[msg.Sender].debt or vaults[msg.Sender].debt == 0 then
-            vaults[msg.Sender].collateralRatio = 999
-        else 
-            vaults[msg.Sender].collateralRatio = (vaults[msg.Sender].collateral * wArPrice) / vaults[msg.Sender].debt
-        end
+      if not vaults[msg.Sender].debt or vaults[msg.Sender].debt == 0 then
+          vaults[msg.Sender].collateralRatio = 999
+      else
+          vaults[msg.Sender].collateralRatio = (vaults[msg.Sender].collateral * wArPrice) / vaults[msg.Sender].debt
+      end
 
-        -- Send confirmation
-        msg.reply({
-            Data = {
-                message = "Collateral deposited successfully",
-                vault = vaults[msg.Sender]
-            }
-        })
-    else 
-        ao.send({
-            Target = msg.Sender,
-            Action = "Transfer",
-            Quantity = msg.Quantity,
-            Recipient = msg.Sender
-        })
-    end
+      -- Send confirmation
+      msg.reply({
+          Data = {
+              message = "Collateral deposited successfully",
+              vault = vaults[msg.Sender]
+          }
+      })
+  else
+      ao.send({
+          Target = msg.Sender,
+          Action = "Transfer",
+          Quantity = msg.Quantity,
+          Recipient = msg.Sender
+      })
+  end
+end)
+
+Handlers.add("repayStablecoin", "Burn-Notice", function(msg)
+  if msg["X-RepayStablecoin"] == "True" then
+    print("Detecting burn")
+    local amount = tonumber(msg.Quantity)
+
+    vaults[msg.From].debt = vaults[msg.From].debt - amount
+    vaults[msg.From].collateralRatio = vaults[msg.From].collateral / vaults[msg.From].debt
+
+    msg.reply({
+      Data = {
+        message = "Stablecoin repayed successfully",
+        vault = vaults[msg.From]
+      }
+    })
+  else
+    ao.send({
+        Target = msg.Sender,
+        Action = "Transfer",
+        Quantity = msg.Quantity,
+        Recipient = msg.Sender
+    })
+  end
 end)
 
 Handlers.add("withdrawCollateral", "WithdrawCollateral", function(msg)
@@ -117,11 +141,11 @@ Handlers.add("withdrawCollateral", "WithdrawCollateral", function(msg)
 
     -- Update vault state: subtract from collateral, not add to debt
     vaults[msg.From].collateral = vaults[msg.From].collateral - amount
-    
+
     -- Update collateral ratio with proper zero debt handling
     if not vaults[msg.From].debt or vaults[msg.From].debt == 0 then
         vaults[msg.From].collateralRatio = 999
-    else 
+    else
         vaults[msg.From].collateralRatio = collateralRatio
     end
 
@@ -152,7 +176,6 @@ Handlers.add("mintStablecoin", "MintStablecoin", function(msg)
   end
 
   local amount = tonumber(msg.Quantity)
-  local collateral = vaults[user].collateral
   if not amount or amount <= 0 then
       msg.reply({
           Error = "Amount must be a positive number"

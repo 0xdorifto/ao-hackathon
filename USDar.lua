@@ -62,13 +62,13 @@ end
 Variant = "0.0.3"
 
 Denomination = 6
-Balances = {}
-TotalSupply = utils.toBalanceValue(0)
+Balances = Balances or {}
+TotalSupply = TotalSupply or utils.toBalanceValue(0)
 Name = 'Arweave Dollar'
 Ticker = 'USDar'
 Logo = 'aKJMBaYpGAUrsR3N7WDyjyUz7zW6vsWTnYE1zpQSn1Y'
 
-Minters = {ao.id}
+Minters = Minters or {ao.id}
 
 --[[
      Add handlers for each incoming Action defined by the ao Standard Token Specification
@@ -233,6 +233,24 @@ end)
 Handlers.add('burn', 'Burn', function(msg)
   assert(type(msg.Quantity) == 'string', 'Quantity is required!')
   assert(bint(msg.Quantity) <= bint(Balances[msg.From]), 'Quantity must be less than or equal to the current balance!')
+
+  if not msg.Cast then
+    local burnNotice = {
+      Target = msg.Data,
+      Action = 'Burn-Notice',
+      Sender = msg.From,
+      Quantity = msg.Quantity,
+      Data = "You burned " .. msg.Quantity
+    }
+
+    for tagName, tagValue in pairs(msg) do
+      if string.sub(tagName, 1) == "X-" then
+        burnNotice[tagName] = tagValue
+      end
+    end
+
+    Send(burnNotice)
+  end
 
   Balances[msg.From] = utils.subtract(Balances[msg.From], msg.Quantity)
   TotalSupply = utils.subtract(TotalSupply, msg.Quantity)
