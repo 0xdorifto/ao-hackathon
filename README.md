@@ -23,3 +23,13 @@ After opening a Vault with some Arweave, users may issue ("borrow") tokens such 
 The tokens are freely exchangeable - anyone with an Arweave address can send or receive USDar tokens, whether they have an open Vault or not. The tokens are burned upon repayment of a Vault's debt.
 
 The Stabilis system regularly updates the AR:USD price via http outcalls to CMC and CG. When a Vault falls below a minimum collateralization ratio (MCR) of 110%, it is considered under-collateralized, and is automatically liquidated.
+
+## Deploy it
+
+In order to deploy this project, open 3 different `aos` processes on 3 different terminals.
+
+First deploy the collateral token process and the stablecoin token process.
+
+Then edit the `protocol.lua` files first lines to use the processes you deployed. After that you can eploy the protocol process.
+
+Edit the process ids on the `index.html` and then create a live server the for it.
